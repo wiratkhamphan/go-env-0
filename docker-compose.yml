@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: dbname
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      DB_HOST: "mysql"
+      DB_PORT: "3306"
+      DB_USER: "user"
+      DB_PASSWORD: ""
+      DB_NAME: "shoplek"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "8181:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: password

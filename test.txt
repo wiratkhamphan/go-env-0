@@ -1,0 +1,120 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+
+	_ "github.com/go-sql-driver/mysql" // Import the MySQL driver
+	"github.com/joho/godotenv"
+)
+
+type Env struct {
+	DBdriver string
+	DBuser   string
+	DBpass   string
+	DBname   string
+}
+
+func main() {
+	QE()
+	QEee()
+
+}
+func NewEnv() (*Env, error) {
+	err := godotenv.Load("file-env/.env")
+
+	if err != nil {
+		log.Fatal("Error loading .env file: ", err)
+	}
+
+	env := &Env{
+		DBdriver: os.Getenv("DB_Driver"),
+		DBuser:   os.Getenv("DB_User"),
+		DBpass:   os.Getenv("DB_Pass"),
+		DBname:   os.Getenv("DB_name"),
+	}
+	fmt.Println(env)
+
+	return env, nil
+}
+
+func ConDB() (*sql.DB, error) {
+	env, err := NewEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := sql.Open(env.DBdriver, fmt.Sprintf("%s:%s@/%s", env.DBuser, env.DBpass, env.DBname))
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Connected to the database!")
+	return db, nil
+}
+
+func QE() {
+	db, err := ConDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close() // Close the database connection when done with it
+
+	rows, err := db.Query("SELECT * FROM login")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close() // Close the result set when done with it
+
+	for rows.Next() {
+		var column1, column2, column3, column4 string // Replace these with actual column types
+
+		err := rows.Scan(&column1, &column2, &column3, &column4) // Update this line with your column types
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(column1, column2, column3, column4) // Print or process the fetched data
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+func QEee() {
+	db, err := ConDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close() // Close the database connection when done with it
+
+	rows, err := db.Query("SELECT * FROM ios_person")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close() // Close the result set when done with it
+
+	for rows.Next() {
+		var column1, column2, column3, column4, column5, column6 string // Replace these with actual column types
+
+		err := rows.Scan(&column1, &column2, &column3, &column4, &column5, &column6) // Update this line with your column types
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(column1, column2, column3, column4, column5, column6) // Print or process the fetched data
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
