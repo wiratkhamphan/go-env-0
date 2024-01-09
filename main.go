@@ -77,6 +77,39 @@ func getUsersHandlerID(db *sql.DB) func(c *fiber.Ctx) error {
 		return c.JSON(users)
 	}
 }
+
+func postID(db *sql.DB) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		ID := c.Params("id")
+
+		rows, err := db.Query("SELECT id, username, email FROM users WHERE id = ?", ID)
+		if err != nil {
+			log.Fatal(err)
+			return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+		}
+		defer rows.Close()
+
+		var users []map[string]interface{}
+		for rows.Next() {
+			var user User
+			err := rows.Scan(&user.ID, &user.Name, &user.Email)
+			if err != nil {
+				log.Fatal(err)
+				return c.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
+			}
+
+			userMap := map[string]interface{}{
+				"id":       user.ID,
+				"username": user.Name,
+				// Exclude email field
+			}
+			users = append(users, userMap)
+		}
+
+		return c.JSON(users)
+	}
+}
+
 func main() {
 	// Connect to the database (replace 'your_dsn' with your actual database connection string)
 	db, err := database.DBConnection()
@@ -96,6 +129,7 @@ func main() {
 	app.Route("/shop", func(api fiber.Router) {
 		api.Get("/users", getUsersHandler(db)).Name("foo")
 		api.Get("/users/:username", getUsersHandlerID(db)).Name("bar")
+		api.Post("users/:id", postID(db)).Name("ID")
 	}, "test.")
 
 	log.Fatal(app.Listen(":8080"))
